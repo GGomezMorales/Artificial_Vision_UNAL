@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PROJECT_ROOT="$(cd "$(dirname "$0")"; cd ..; pwd)"
+source ${PROJECT_ROOT}/config.sh
+
+docker run --privileged --rm -it \
+    -p 8888:8888 \
+    --name $CONTAINER_NAME \
+    --env="DISPLAY=$DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume="$XAUTH:$XAUTH" \
+    -v ${PROJECT_ROOT}/python-scripts-notebooks:/home/artificial-vision/ \
+    -t \
+    ${DOCKER_IMAGE_NAME} -c "jupyter notebook --port 8888 /home/artificial-vision/ --allow-root"
