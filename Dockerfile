@@ -1,21 +1,23 @@
-FROM ubuntu:22.04
+FROM continuumio/miniconda3
 
-# Install the necessary packages
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip 
+RUN conda install jupyter -y 
 
-RUN pip3 install numpy \
-    pandas \
-    openCV-python \
-    matplotlib \
-    jupyter \
-    ipykernel
+RUN conda install jupyterlab -y
 
-RUN pip install notebook
+RUN jupyter-lab --generate-config
 
-WORKDIR /home/artificial-vision
+COPY ./env.yml ./env.yml
 
-# COPY /python-scripts-notebooks /home/artificial-vision/
+RUN conda env create -f env.yml
 
+RUN conda install ipykernel
 
+RUN conda install -c conda-forge nb_conda_kernels
+
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
+COPY ./.jupyter_config_files/jupyter_lab_config.py /root/.jupyter/jupyter_lab_config.py
+
+COPY ./.jupyter_config_files/themes.jupyterlab-settings /root/.jupyter/lab/user-settings/@jupyterlab/apputils-extension/themes.jupyterlab-settings
+
+CMD ["jupyter-lab", "./artificial-vision-project/", "--allow-root"]

@@ -1,0 +1,4 @@
+#!bin/bash
+
+jupyter-lab --port  ./artificial-vision-project/ --allow-root
+
