@@ -20,4 +20,6 @@ COPY ./.jupyter_config_files/jupyter_lab_config.py /root/.jupyter/jupyter_lab_co
 
 COPY ./.jupyter_config_files/themes.jupyterlab-settings /root/.jupyter/lab/user-settings/@jupyterlab/apputils-extension/themes.jupyterlab-settings
 
+RUN pip install kaggle
+
 CMD ["jupyter-lab", "./artificial-vision-project/", "--allow-root"]

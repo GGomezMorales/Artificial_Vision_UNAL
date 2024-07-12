@@ -23,6 +23,18 @@ def gaussian(
 ) -> float:
     return (1 / (2 * np.pi * (sigma ** 2))) * np.exp(-(x ** 2) / (2 * sigma ** 2))
 
+def resize_images(images, size=(32, 32)):
+    resized_images = [cv2.resize(image, size, interpolation=cv2.INTER_AREA) for image in images]
+    return resized_images
+
+def convert_to_grayscale(images):
+    grayscale_images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
+    return grayscale_images
+
+def normalize_images(images):
+    normalized_images = [image.astype('float32') / 255.0 for image in images]
+    return normalized_images
+
 #  -------------------- COLOR SPACES --------------------
 
 
