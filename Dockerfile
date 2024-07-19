@@ -1,25 +1,17 @@
 FROM continuumio/miniconda3
 
-RUN conda install jupyter -y 
-
-RUN conda install jupyterlab -y
+RUN conda install jupyter jupyterlab ipykernel -y \
+    && conda install -c conda-forge nb_conda_kernels
 
 RUN jupyter-lab --generate-config
 
-COPY ./env.yml ./env.yml
+COPY ./env.yml /
 
 RUN conda env create -f env.yml
 
-RUN conda install ipykernel
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 unzip -y \
+    && pip install kaggle
 
-RUN conda install -c conda-forge nb_conda_kernels
-
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
-
-COPY ./.jupyter_config_files/jupyter_lab_config.py /root/.jupyter/jupyter_lab_config.py
-
-COPY ./.jupyter_config_files/themes.jupyterlab-settings /root/.jupyter/lab/user-settings/@jupyterlab/apputils-extension/themes.jupyterlab-settings
-
-RUN pip install kaggle
+COPY ./.config/jupyter_lab_config.py /root/.jupyter/jupyter_lab_config.py
 
 CMD ["jupyter-lab", "./artificial-vision-project/", "--allow-root"]
