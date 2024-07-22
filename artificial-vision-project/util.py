@@ -2,11 +2,6 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
-# cv2.IMREAD_COLOR : Carga la imagen a color, omitiendo transparencias. Es la bandera por defecto.
-# cv2.IMREAD_GRAYSCALE : Carga la imagen en escala de grises.
-# cv2.IMREAD_UNCHANGED : Carga la imagen como tal, incluyendo el canal alpha si existe.
-
-
 #  -------------------- UTILS --------------------
 
 def distance(
@@ -15,25 +10,51 @@ def distance(
     x2: int,
     y2: int
 ) -> float:
-    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    try:
+        return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    except Exception as e:
+        print(f'Error: {e}')
+
 
 def gaussian(
     x: float,
     sigma: float
 ) -> float:
-    return (1 / (2 * np.pi * (sigma ** 2))) * np.exp(-(x ** 2) / (2 * sigma ** 2))
+    try :
+        return (1 / (2 * np.pi * (sigma ** 2))) * np.exp(-(x ** 2) / (2 * sigma ** 2))
+    except Exception as e:
+        print(f'Error: {e}')
 
-def resize_images(images, size=(32, 32)):
-    resized_images = [cv2.resize(image, size, interpolation=cv2.INTER_AREA) for image in images]
-    return resized_images
 
-def convert_to_grayscale(images):
-    grayscale_images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
-    return grayscale_images
+def resize_images(
+    images: list[np.ndarray],
+    size: tuple = (32, 32)
+) -> list[np.ndarray]:
+    try:
+        resized_images = [cv2.resize(image, size, interpolation=cv2.INTER_AREA) for image in images]
+        return resized_images
+    except Exception as e:
+        print(f'Error: {e}')
 
-def normalize_images(images):
-    normalized_images = [image.astype('float32') / 255.0 for image in images]
-    return normalized_images
+
+def convert_to_grayscale(
+    images: list[np.ndarray]
+) -> list[np.ndarray]:
+    try:
+        grayscale_images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
+        return grayscale_images
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def normalize_images(
+    images: list[np.ndarray]
+) -> list[np.ndarray]:
+    try:
+        normalized_images = [image.astype('float32') / 255.0 for image in images]
+        return normalized_images
+    except Exception as e:
+        print(f'Error: {e}')
 
 #  -------------------- COLOR SPACES --------------------
 
@@ -77,6 +98,7 @@ def image_show(
         plt.figure(figsize=figsize)
         plt.imshow(image, cmap='gray' if len(image.shape) == 2 else None)
         plt.title(title)
+        plt.axis('off')
         plt.show()
     except Exception as e:
         print(f'Error: {e}')
@@ -94,6 +116,7 @@ def subplot_images(
         for ax, image, name in zip(axes, images, images_name):
             ax.set_title(name)
             ax.imshow(image, cmap='gray')
+            ax.axis('off')
         plt.show()
     except Exception as e:
         print(f'Error: {e}')
@@ -113,6 +136,7 @@ def plot_image_and_histogram(
             colors = ('r', 'g', 'b')
             axs[0].set_title(image_title)
             axs[0].imshow(image, cmap='gray')
+            axs[0].axis('off')
 
             axs[1].set_title(hist_title)
             for i, col in enumerate(colors):
@@ -131,6 +155,7 @@ def plot_image_and_histogram(
             fig.suptitle(title, fontsize=20)
             axs[0].set_title(image_title)
             axs[0].imshow(image, cmap='gray')
+            axs[0].axis('off')
 
             axs[1].set_title(hist_title)
             axs[1].hist(
@@ -146,7 +171,7 @@ def plot_image_and_histogram(
 
 def plot_channels(
     image: np.ndarray,
-    mode='rbg',
+    mode='rgb',
     title: str = 'RGB channels',
     channel_names: tuple = ['Channel R', 'Channel G', 'Channel B'],
     cmaps: tuple = ('Reds', 'Greens', 'Blues'),
@@ -253,6 +278,7 @@ def plot_channels(
         for ax, channel, name, cmap in zip(axes, channels, channel_names, cmaps):
             ax.set_title(name)
             ax.imshow(channel, cmap=cmap, aspect='auto')
+            ax.axis('off')
     except Exception as e:
         print(f'Error: {e}')
 
@@ -291,7 +317,9 @@ def linear_transformation(
         print(f'Error: {e}')
 
 
-def negative_transformation(image: np.ndarray) -> np.ndarray:
+def negative_transformation(
+    image: np.ndarray
+) -> np.ndarray:
     try:
         return linear_transformation(image, -1, 255)
     except Exception as e:
@@ -300,7 +328,11 @@ def negative_transformation(image: np.ndarray) -> np.ndarray:
 # -------------------- GEOMETRIC TRANSFORMATIONS --------------------
 
 
-def translation_transformation(image: np.ndarray, dx: int, dy: int) -> np.ndarray:
+def translation_transformation(
+    image: np.ndarray,
+    dx: int,
+    dy: int
+) -> np.ndarray:
     try:
         size = np.shape(image)
         translation_matrix = np.float32(
@@ -341,8 +373,8 @@ def reflection_transformation(
 
 
 def rotation_transformation(
-        image: np.ndarray,
-        angle: float
+    image: np.ndarray,
+    angle: float
 ) -> np.ndarray:
     try:
         size = np.shape(image)
@@ -354,9 +386,9 @@ def rotation_transformation(
 
 
 def inclination_transformation(
-        image: np.ndarray,
-        incl_x: float,
-        incl_y: float
+    image: np.ndarray,
+    incl_x: float,
+    incl_y: float
 ) -> np.ndarray:
     try:
         size = np.shape(image)
@@ -396,13 +428,13 @@ def scaling_transformation(
 
 def apply_transformation_on_rgb(
     image: np.ndarray,
-    transformation: callable, args: list
+    transformation: callable,
+    args: list
 ) -> np.ndarray:
     try:
         image_transformated = np.zeros(image.shape, np.uint8)
         for i in range(3):
-            image_transformated[:, :, i] = transformation(
-                image[:, :, i], *args)
+            image_transformated[:, :, i] = transformation(image.copy()[:, :, i], *args)
         return image_transformated
     except Exception as e:
         print(f'Error: {e}')
@@ -417,6 +449,16 @@ def gamma_correction(
         image_result = cv2.multiply(
             cv2.pow(image.copy().astype(np.float32) / 255.0, gamma), a)
         return np.clip(image_result * 255.0, 0, 255).astype(np.uint8)
+    except Exception as e:
+        print(f'Error: {e}')
+
+#  -------------------- HISTOGRAMS --------------------
+
+def equalize_histogram(
+    image: np.ndarray
+) -> np.ndarray:
+    try:
+        return cv2.equalizeHist(image.copy())
     except Exception as e:
         print(f'Error: {e}')
 
@@ -530,6 +572,16 @@ def laplacian_filter(
     except Exception as e:
         print(f'Error: {e}')
 
+def gaussian_filter(
+    image: np.ndarray,
+    ksize: int,
+    sigma: float
+) -> np.ndarray:
+    try:
+        return cv2.GaussianBlur(image.copy(), (ksize, ksize), sigma)
+    except Exception as e:
+        print(f'Error: {e}')
+
 #  -------------------- BORDER TYPES --------------------
 
 
@@ -610,5 +662,34 @@ def add_speckle_noise(
         image_noisy = image.copy()
         uniform_noise = np.random.uniform(-distr_width, distr_width, (image.shape)) * amount
         return np.clip(image_noisy + image_noisy * uniform_noise, 0, 255).astype(np.uint8)
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def reduce_noise(
+    image: np.ndarray,
+    h: float = 3,
+    hColor: float = 3,
+    templateWindowSize: int = 7,
+    searchWindowSize: int = 21
+) -> np.ndarray:
+    try:
+        if len(image.shape) == 2:
+            return cv2.fastNlMeansDenoising(
+                image.copy(),
+                None,
+                h,
+                templateWindowSize,
+                searchWindowSize
+            )
+        else: 
+            return cv2.fastNlMeansDenoisingColored(
+                image.copy(),
+                None,
+                h,
+                hColor,
+                templateWindowSize,
+                searchWindowSize
+            )
     except Exception as e:
         print(f'Error: {e}')
