@@ -693,3 +693,16 @@ def reduce_noise(
             )
     except Exception as e:
         print(f'Error: {e}')
+
+def enhance_resolution(
+    image: np.ndarray,
+    scale: int = 2,
+    path_model: str = '/EDSR_x2.pb'
+) -> np.ndarray:
+    try:
+        sr = cv2.dnn_superres.DnnSuperResImpl_create()
+        sr.readModel(path_model)
+        sr.setModel("edsr", scale)
+        return sr.upsample(image.copy())
+    except Exception as e:
+        print(f'Error: {e}')
