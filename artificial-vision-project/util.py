@@ -59,7 +59,26 @@ def normalize_images(
 #  -------------------- COLOR SPACES --------------------
 
 
-def image_read(
+def read_images(
+    images_info: list[dict]
+) -> list[np.ndarray]:
+    original_images = []
+    original_images_gray = []
+    image_names = []
+
+    for info in images_info:
+        color_image = read_image(info["path"])
+        original_images.append(color_image)
+
+        gray_image = read_image(info["path"], 'gray')
+        original_images_gray.append(gray_image)
+
+        image_names.append(info["name"])
+    
+    return original_images, original_images_gray, image_names
+
+
+def read_image(
     image_path: str,
     mode: str = 'color'
 ) -> np.ndarray:
@@ -89,7 +108,7 @@ def image_read(
         print(f'Error: {e}')
 
 
-def image_show(
+def show_image(
     image: np.ndarray,
     title: str = 'Image',
     figsize: tuple = None
@@ -107,13 +126,13 @@ def image_show(
 def subplot_images(
     title: str = '',
     images: list = [],
-    images_name: list = [],
+    image_names: list = [],
     figsize: tuple = (15, 7)
 ) -> None:
     try:
         fig, axes = plt.subplots(1, len(images), figsize=figsize)
         fig.suptitle(title, fontsize=20)
-        for ax, image, name in zip(axes, images, images_name):
+        for ax, image, name in zip(axes, images, image_names):
             ax.set_title(name)
             ax.imshow(image, cmap='gray')
             ax.axis('off')
@@ -176,7 +195,7 @@ def plot_channels(
     channel_names: tuple = ['Channel R', 'Channel G', 'Channel B'],
     cmaps: tuple = ('Reds', 'Greens', 'Blues'),
     figsize: tuple = (30, 7),
-    images: list = []
+    individual_images: list = []
 ) -> None:
     # Split the image into its channels
     try:
@@ -232,14 +251,11 @@ def plot_channels(
                     blue = image[i][j][2]
 
                     if (max_value == red):
-                        channel_H = (green - blue) * 60 / \
-                            (max_value - min_value)
+                        channel_H = (green - blue) * 60 / (max_value - min_value)
                     elif (max_value == green):
-                        channel_H = (blue - red) * 60 / \
-                            (max_value - min_value) + 120
+                        channel_H = (blue - red) * 60 / (max_value - min_value) + 120
                     else:
-                        channel_H = (red - green) * 60 / \
-                            (max_value - min_value) + 240
+                        channel_H = (red - green) * 60 / (max_value - min_value) + 240
                     if channel_H >= 0:
                         image_HSL[i, j, 0] = channel_H
                     else:
@@ -264,7 +280,7 @@ def plot_channels(
             cmaps = cmaps
             channel_names = channel_names
         elif mode == 'individual':
-            channels = images
+            channels = individual_images
             cmaps = cmaps
             channel_names = channel_names
         else:
@@ -404,19 +420,19 @@ def inclination_transformation(
 def scaling_transformation(
     image: np.ndarray,
     size: tuple = None,
-    scale_x: float = 1.0,
-    scale_y: float = 1.0,
+    x_scale: float = 1.0,
+    y_scale: float = 1.0,
     method: str = 'linear'
 ) -> np.ndarray:
     try:
         if method == 'linear':
-            return cv2.resize(image.copy(), size, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
+            return cv2.resize(image.copy(), size, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_LINEAR)
         elif method == 'nearest':
-            return cv2.resize(image.copy(), size, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_NEAREST)
+            return cv2.resize(image.copy(), size, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_NEAREST)
         elif method == 'bilinear':
-            return cv2.resize(image.copy(), size, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
+            return cv2.resize(image.copy(), size, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_LINEAR)
         elif method == 'bicubic':
-            return cv2.resize(image.copy(), size, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_CUBIC)
+            return cv2.resize(image.copy(), size, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_CUBIC)
         else:
             raise ValueError(
                 f'Invalid method. Use "nearest", "linear", "bilinear" or "bicubic".')
@@ -432,10 +448,10 @@ def apply_transformation_on_rgb(
     args: list
 ) -> np.ndarray:
     try:
-        image_transformated = np.zeros(image.shape, np.uint8)
+        transformed_image = np.zeros(image.shape, np.uint8)
         for i in range(3):
-            image_transformated[:, :, i] = transformation(image.copy()[:, :, i], *args)
-        return image_transformated
+            transformed_image[:, :, i] = transformation(image.copy()[:, :, i], *args)
+        return transformed_image
     except Exception as e:
         print(f'Error: {e}')
 
@@ -446,9 +462,9 @@ def gamma_correction(
     gamma: float
 ) -> np.ndarray:
     try:
-        image_result = cv2.multiply(
+        result_image = cv2.multiply(
             cv2.pow(image.copy().astype(np.float32) / 255.0, gamma), a)
-        return np.clip(image_result * 255.0, 0, 255).astype(np.uint8)
+        return np.clip(result_image * 255.0, 0, 255).astype(np.uint8)
     except Exception as e:
         print(f'Error: {e}')
 
@@ -697,11 +713,11 @@ def reduce_noise(
 def enhance_resolution(
     image: np.ndarray,
     scale: int = 2,
-    path_model: str = '/EDSR_x2.pb'
+    model_path: str = '/EDSR_x2.pb'
 ) -> np.ndarray:
     try:
         sr = cv2.dnn_superres.DnnSuperResImpl_create()
-        sr.readModel(path_model)
+        sr.readModel(model_path)
         sr.setModel("edsr", scale)
         return sr.upsample(image.copy())
     except Exception as e:
