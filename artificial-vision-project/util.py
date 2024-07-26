@@ -442,12 +442,14 @@ def scaling_transformation(
 #  -------------------- IMAGE TRANSFORMATIONS --------------------
 
 
-def apply_transformation_on_rgb(
+def apply_transformation(
     image: np.ndarray,
     transformation: callable,
     args: list
 ) -> np.ndarray:
     try:
+        if len(image.shape) == 2:
+            return transformation(image.copy(), *args)
         transformed_image = np.zeros(image.shape, np.uint8)
         for i in range(3):
             transformed_image[:, :, i] = transformation(image.copy()[:, :, i], *args)
@@ -477,6 +479,31 @@ def equalize_histogram(
         return cv2.equalizeHist(image.copy())
     except Exception as e:
         print(f'Error: {e}')
+
+
+def histogram_expansion(
+    image: np.ndarray
+) -> np.ndarray:
+    try:
+        if len(image.shape) == 2:
+            min_val = np.min(image)
+            max_val = np.max(image)
+            expanded_image = (image - min_val) * (255.0 / (max_val - min_val))
+            expanded_image = np.uint8(expanded_image)
+        else:
+            channels = cv2.split(image)
+            expanded_channels = []
+            for ch in channels:
+                min_val = np.min(ch)
+                max_val = np.max(ch)
+                expanded_ch = (ch - min_val) * (255.0 / (max_val - min_val))
+                expanded_ch = np.uint8(expanded_ch)
+                expanded_channels.append(expanded_ch)
+            expanded_image = cv2.merge(expanded_channels)
+        return expanded_image
+    except Exception as e:
+        print(f'Error: {e}')
+
 
 #  -------------------- IMAGE FILTERS --------------------
 
