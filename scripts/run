@@ -7,5 +7,5 @@ docker rm -f $CONTAINER_NAME
 docker run --privileged --rm -it \
     -p 8888:8888 \
     --name $CONTAINER_NAME \
-    -v ${PROJECT_ROOT}/artificial-vision-project:/artificial-vision-project/ \
+    --mount type=bind,source=${PROJECT_ROOT}/artificial-vision-project/,target=/artificial-vision-project/ \
     ${DOCKER_IMAGE_NAME}
