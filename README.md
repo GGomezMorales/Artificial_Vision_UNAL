@@ -40,7 +40,7 @@ Este comando descargará todos los archivos del proyecto en tu directorio local 
 Dentro del directorio del proyecto, ejecuta el siguiente script para construir la imagen Docker que contiene todas las dependencias necesarias para el proyecto:
 
 ```bash
-./scripts/bash
+./scripts/build
 ```
 
 Este comando ejecuta un script que preparará el entorno Docker para ejecutar el proyecto.
