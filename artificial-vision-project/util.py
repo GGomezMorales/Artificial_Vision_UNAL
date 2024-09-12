@@ -615,6 +615,7 @@ def laplacian_filter(
     except Exception as e:
         print(f'Error: {e}')
 
+
 def gaussian_filter(
     image: np.ndarray,
     ksize: int,
@@ -696,6 +697,7 @@ def add_salt_and_pepper_noise(
     except Exception as e:
         print(f'Error: {e}')
 
+
 def add_speckle_noise(
     image: np.ndarray,
     amount: float = 1.0,
@@ -737,6 +739,7 @@ def reduce_noise(
     except Exception as e:
         print(f'Error: {e}')
 
+
 def enhance_resolution(
     image: np.ndarray,
     scale: int = 2,
@@ -747,5 +750,54 @@ def enhance_resolution(
         sr.readModel(model_path)
         sr.setModel("edsr", scale)
         return sr.upsample(image.copy())
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+#  -------------------- SEGMENTATION --------------------
+
+
+def simple_thresholding(
+    image: np.ndarray,
+    threshold: int,
+    method: int = cv2.THRESH_BINARY
+) -> np.ndarray:
+    try:
+        return cv2.threshold(image.copy(), threshold, 255, method)[1]
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def adaptative_thresholding(
+    image: np.ndarray,
+    method: int = cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    threshold: int = cv2.THRESH_BINARY,
+    blockSize: int = 11,
+    C: float = 2
+) -> np.ndarray:
+    try:
+        return cv2.adaptiveThreshold(image.copy(), 255, method, threshold, blockSize, C)
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def canny_edge_detection(
+    image: np.ndarray,
+    threshold1: int,
+    threshold2: int
+) -> np.ndarray:
+    try:
+        return cv2.Canny(image.copy(), threshold1, threshold2)
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def dilate_image(
+    image: np.ndarray,
+    kernel: np.ndarray,
+    iterations: int = 1
+) -> np.ndarray:
+    try:
+        return cv2.dilate(image.copy(), kernel, iterations=iterations)
     except Exception as e:
         print(f'Error: {e}')
