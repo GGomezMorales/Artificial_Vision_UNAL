@@ -80,17 +80,23 @@ def read_images(
 
 def read_image(
     image_path: str,
-    mode: str = 'color'
+    mode: str = 'rgb'
 ) -> np.ndarray:
     try:
         grayscale_modes = ('grayscale', 'greyscale', 'gray', 'grey', 'gris')
         mode = mode.lower()
-        if mode == 'color':
+        if mode == 'rgb':
             return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         elif mode == 'standard-color':
             return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32) / 255
         elif mode in grayscale_modes:
             return cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        elif mode == 'bgr':
+            return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        elif mode == 'cmy':
+            return 255 - cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        elif mode == 'yiq':
+            return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         elif mode == 'yuv':
             return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2YUV)
         elif mode == 'hsv':
@@ -103,7 +109,7 @@ def read_image(
             return cv2.cvtColor(cv2.imread(image_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2XYZ)
         else:
             raise ValueError(
-                f'Invalid mode. Use "color", "standard-color", "{grayscale_modes}", "yuv", "hsv", "hls", "lab" or "xyz".')
+                f'Modo inválido. Use "color", "standard-color", "{grayscale_modes}", "yuv", "hsv", "hls", "lab" o "xyz".')
     except Exception as e:
         print(f'Error: {e}')
 
@@ -197,17 +203,16 @@ def plot_channels(
     figsize: tuple = (30, 7),
     individual_images: list = []
 ) -> None:
-    # Split the image into its channels
     try:
         mode = mode.lower()
         if mode == 'rgb':
             channels = [image[:, :, i] for i in range(3)]
         elif mode == 'bgr':
-            channels = [image[:, :, i] for i in [2, 1, 0]]
+            channels = [image[:, :, i] for i in range(3)]
             cmaps = cmaps[::-1]
             channel_names = channel_names[::-1]
         elif mode == 'cmy':
-            channels = [255 - image[:, :, i] for i in range(3)]
+            channels = [image[:, :, i] for i in range(3)]
             cmaps = ('GnBu', 'RdPu', 'YlOrBr')
             channel_names = ('Channel C', 'Channel M', 'Channel Y')
         elif mode == 'yiq':
@@ -225,44 +230,10 @@ def plot_channels(
             channels = [image[:, :, i] for i in range(3)]
             cmaps = ('gray', 'gray', 'gray')
             channel_names = ('Channel Y', 'Channel U', 'Channel V')
-        elif mode == 'hsl':
-            # Convert to HSL
-            size = np.shape(image)
-            image_HSL = np.zeros((size), dtype=np.float32)
-            # Algorithm to convert RGB to HSL
-            for i in range(size[0]):
-                for j in range(size[1]):
-                    # Normalization
-                    max_value = np.max(image[i][j])
-                    min_value = np.min(image[i][j])
-
-                    channel_S = max_value - min_value
-                    channel_L = channel_S / 2
-
-                    image_HSL[i][j][1] = channel_S
-                    image_HSL[i][j][2] = channel_L
-
-                    if (max_value == min_value):
-                        image_HSL[i][j][0] = 0
-                        continue
-
-                    red = image[i][j][0]
-                    green = image[i][j][1]
-                    blue = image[i][j][2]
-
-                    if (max_value == red):
-                        channel_H = (green - blue) * 60 / (max_value - min_value)
-                    elif (max_value == green):
-                        channel_H = (blue - red) * 60 / (max_value - min_value) + 120
-                    else:
-                        channel_H = (red - green) * 60 / (max_value - min_value) + 240
-                    if channel_H >= 0:
-                        image_HSL[i, j, 0] = channel_H
-                    else:
-                        image_HSL[i, j, 0] = 360.0 - channel_H
-            channels = [image_HSL[:, :, i] for i in range(3)]
+        elif mode == 'hls':
+            channels = [image[:, :, i] for i in range(3)]
             cmaps = ('gray', 'gray', 'gray')
-            channel_names = ['Channel H', 'Channel S', 'Channel L']
+            channel_names = ['Channel H', 'Channel L', 'Channel S']
         elif mode == 'hsv':
             channels = [image[:, :, i] for i in range(3)]
             cmaps = ('gray', 'gray', 'gray')
@@ -286,7 +257,6 @@ def plot_channels(
         else:
             raise ValueError(
                 f'Invalid mode. Use "rgb", "bgr", "cmy", "yiq", "yuv", "hsl", "hsv", "lab", "xyz", "custom" or "individual".')
-
         # Plot the channels
         fig, axes = plt.subplots(1, 3, figsize=figsize)
         fig.suptitle(title, fontsize=20)
@@ -319,9 +289,9 @@ def linear_transformation(
                 for j in range(size[1]):
                     for k in range(size[2]):
                         value = img[i][j][k] * alpha + beta
-                        if (value > 255):
+                        if value > 255:
                             img[i][j][k] = 255
-                        elif (value < 0):
+                        elif value < 0:
                             img[i][j][k] = 0
                         else:
                             img[i][j][k] = value
@@ -331,6 +301,7 @@ def linear_transformation(
                 f'Invalid mode. Use "default", "grayscale" or "color".')
     except Exception as e:
         print(f'Error: {e}')
+        return None
 
 
 def negative_transformation(
